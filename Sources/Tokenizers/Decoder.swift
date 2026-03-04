@@ -14,12 +14,6 @@ public protocol Decoder {
     /// - Returns: An array of decoded text components
     func decode(tokens: [String]) -> [String]
 
-    /// Function call syntax for token decoding.
-    ///
-    /// - Parameter tokens: The token strings to decode
-    /// - Returns: An array of decoded text components
-    func callAsFunction(tokens: [String]) -> [String]
-
     /// Initializes the decoder from configuration.
     ///
     /// - Parameter config: The configuration for this decoder

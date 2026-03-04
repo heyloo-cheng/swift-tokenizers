@@ -14,12 +14,6 @@ public protocol Normalizer {
     /// - Returns: The normalized text
     func normalize(text: String) -> String
 
-    /// Function call syntax for text normalization.
-    ///
-    /// - Parameter text: The input text to normalize
-    /// - Returns: The normalized text
-    func callAsFunction(text: String) -> String
-
     /// Initializes the normalizer from configuration.
     ///
     /// - Parameter config: The configuration for this normalizer

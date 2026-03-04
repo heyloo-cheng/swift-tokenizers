@@ -17,15 +17,6 @@ public protocol PostProcessor {
     /// - Returns: The post-processed token sequence
     func postProcess(tokens: [String], tokensPair: [String]?, addSpecialTokens: Bool) -> [String]
 
-    /// Function call syntax for post-processing.
-    ///
-    /// - Parameters:
-    ///   - tokens: The primary sequence of tokens to process
-    ///   - tokensPair: An optional secondary sequence
-    ///   - addSpecialTokens: Whether to add special tokens
-    /// - Returns: The post-processed token sequence
-    func callAsFunction(tokens: [String], tokensPair: [String]?, addSpecialTokens: Bool) -> [String]
-
     /// Initializes the post-processor from configuration.
     ///
     /// - Parameter config: The configuration for this post-processor
@@ -34,6 +25,11 @@ public protocol PostProcessor {
 }
 
 extension PostProcessor {
+    /// Convenience with default parameter values for the protocol requirement.
+    func postProcess(tokens: [String], tokensPair: [String]? = nil, addSpecialTokens: Bool = true) -> [String] {
+        postProcess(tokens: tokens, tokensPair: tokensPair, addSpecialTokens: addSpecialTokens)
+    }
+
     func callAsFunction(tokens: [String], tokensPair: [String]? = nil, addSpecialTokens: Bool = true) -> [String] {
         postProcess(tokens: tokens, tokensPair: tokensPair, addSpecialTokens: addSpecialTokens)
     }
@@ -79,7 +75,7 @@ class TemplateProcessing: PostProcessor {
         self.pair = pair
     }
 
-    func postProcess(tokens: [String], tokensPair: [String]? = nil, addSpecialTokens: Bool = true) -> [String] {
+    func postProcess(tokens: [String], tokensPair: [String]?, addSpecialTokens: Bool) -> [String] {
         let config = tokensPair == nil ? single : pair
 
         var toReturn: [String] = []
@@ -100,7 +96,7 @@ class TemplateProcessing: PostProcessor {
 
 class ByteLevelPostProcessor: PostProcessor {
     required init(config: Config) {}
-    func postProcess(tokens: [String], tokensPair: [String]? = nil, addSpecialTokens: Bool = true) -> [String] { tokens }
+    func postProcess(tokens: [String], tokensPair: [String]?, addSpecialTokens: Bool) -> [String] { tokens }
 }
 
 class RobertaProcessing: PostProcessor {
@@ -124,7 +120,7 @@ class RobertaProcessing: PostProcessor {
         addPrefixSpace = config.addPrefixSpace.boolean(or: true)
     }
 
-    func postProcess(tokens: [String], tokensPair: [String]?, addSpecialTokens: Bool = true) -> [String] {
+    func postProcess(tokens: [String], tokensPair: [String]?, addSpecialTokens: Bool) -> [String] {
         var outTokens = tokens
         var tokensPair = tokensPair
         if trimOffset {
@@ -183,7 +179,7 @@ class BertProcessing: PostProcessor {
         self.cls = cls
     }
 
-    func postProcess(tokens: [String], tokensPair: [String]?, addSpecialTokens: Bool = true) -> [String] {
+    func postProcess(tokens: [String], tokensPair: [String]?, addSpecialTokens: Bool) -> [String] {
         guard addSpecialTokens else { return tokens + (tokensPair ?? []) }
 
         var outTokens = [cls.1] + tokens + [sep.1]
@@ -206,7 +202,7 @@ class SequenceProcessing: PostProcessor {
         processors = try processorConfigs.compactMap { try PostProcessorFactory.fromConfig(config: $0) }
     }
 
-    func postProcess(tokens: [String], tokensPair: [String]?, addSpecialTokens: Bool = true) -> [String] {
+    func postProcess(tokens: [String], tokensPair: [String]?, addSpecialTokens: Bool) -> [String] {
         var currentTokens = tokens
         var currentTokensPair = tokensPair
 
