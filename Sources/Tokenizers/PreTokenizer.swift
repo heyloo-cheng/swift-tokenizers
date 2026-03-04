@@ -131,9 +131,6 @@ class WhitespacePreTokenizer: PreTokenizer {
 
 /// PreTokenizer that replaces spaces with the given replacement character, adds a prefix space if requested,
 class MetaspacePreTokenizer: PreTokenizer {
-    /// Whether to add a prefix space to the first token
-    let addPrefixSpace: Bool
-
     /// Replacement character
     let replacement: String
 
@@ -145,18 +142,12 @@ class MetaspacePreTokenizer: PreTokenizer {
         case never
         case always
 
-        static var defaultScheme: PrependScheme { .always }
-        static func from(rawValue value: String?) -> PrependScheme {
-            guard let value else { return defaultScheme }
-            return PrependScheme(rawValue: value) ?? defaultScheme
-        }
     }
 
     /// The metaspace prepend scheme, see https://github.com/huggingface/tokenizers/pull/1357
     let prependScheme: PrependScheme
 
     required init(config: Config) {
-        addPrefixSpace = config.addPrefixSpace.boolean(or: false)
         replacement = config.replacement.string(or: " ")
         stringReplacement = config.strRep.string(or: replacement)
 
