@@ -85,35 +85,17 @@ public protocol TokenizingModel {
     /// - Returns: An array of tokens as strings
     func tokenize(text: String) -> [String]
 
-    /// Alias for `tokenize` that allows the instance to be called as a function.
-    ///
-    /// - Parameter text: The input text to tokenize
-    /// - Returns: An array of tokens as strings
-    func callAsFunction(_ text: String) -> [String]
-
     /// Converts a token string to its corresponding numeric ID.
     ///
     /// - Parameter token: The token string to convert
     /// - Returns: The numeric ID of the token, or nil if the token is not in the vocabulary
     func convertTokenToId(_ token: String) -> Int?
 
-    /// Converts multiple token strings to their corresponding numeric IDs.
-    ///
-    /// - Parameter tokens: An array of token strings to convert
-    /// - Returns: An array of numeric IDs, with nil values for tokens not in the vocabulary
-    func convertTokensToIds(_ tokens: [String]) -> [Int?]
-
     /// Converts a numeric token ID back to its string representation.
     ///
     /// - Parameter id: The numeric token ID to convert
     /// - Returns: The token string, or nil if the ID is not valid
     func convertIdToToken(_ id: Int) -> String?
-
-    /// Converts multiple numeric token IDs back to their string representations.
-    ///
-    /// - Parameter ids: An array of numeric token IDs to convert
-    /// - Returns: An array of token strings, with nil values for invalid IDs
-    func convertIdsToTokens(_ ids: [Int]) -> [String?]
 
     /// The beginning-of-sequence token string, if defined.
     var bosToken: String? { get }
@@ -307,14 +289,6 @@ public protocol Tokenizer: Sendable {
     /// - Returns: An array of tokens as strings
     func tokenize(text: String) -> [String]
 
-    /// Encodes text into token IDs with special tokens included by default.
-    ///
-    /// This is the main entry point for most tokenization tasks.
-    ///
-    /// - Parameter text: The input text to encode
-    /// - Returns: An array of token IDs
-    func encode(text: String) -> [Int]
-
     /// Encodes text into token IDs with optional special token handling.
     ///
     /// - Parameters:
@@ -322,20 +296,6 @@ public protocol Tokenizer: Sendable {
     ///   - addSpecialTokens: Whether to add special tokens (e.g., BOS, EOS)
     /// - Returns: An array of token IDs
     func encode(text: String, addSpecialTokens: Bool) -> [Int]
-
-    /// Function call syntax for encoding text.
-    ///
-    /// - Parameters:
-    ///   - text: The input text to encode
-    ///   - addSpecialTokens: Whether to add special tokens
-    /// - Returns: An array of token IDs
-    func callAsFunction(_ text: String, addSpecialTokens: Bool) -> [Int]
-
-    /// Decodes token IDs back into text with special tokens included.
-    ///
-    /// - Parameter tokens: The token IDs to decode
-    /// - Returns: The decoded text string
-    func decode(tokens: [Int]) -> String
 
     /// Decodes token IDs back into text with optional special token handling.
     ///
@@ -351,41 +311,20 @@ public protocol Tokenizer: Sendable {
     /// - Returns: The numeric ID of the token, or nil if not found
     func convertTokenToId(_ token: String) -> Int?
 
-    /// Converts multiple token strings to their corresponding numeric IDs.
-    ///
-    /// - Parameter tokens: An array of token strings to convert
-    /// - Returns: An array of numeric IDs, with nil values for unknown tokens
-    func convertTokensToIds(_ tokens: [String]) -> [Int?]
-
     /// Converts a numeric token ID back to its string representation.
     ///
     /// - Parameter id: The numeric token ID to convert
     /// - Returns: The token string, or nil if the ID is invalid
     func convertIdToToken(_ id: Int) -> String?
 
-    /// Converts multiple numeric token IDs back to their string representations.
-    ///
-    /// - Parameter ids: An array of numeric token IDs to convert
-    /// - Returns: An array of token strings, with nil values for invalid IDs
-    func convertIdsToTokens(_ ids: [Int]) -> [String?]
-
     /// The beginning-of-sequence token string, if defined.
     var bosToken: String? { get }
-
-    /// The numeric ID of the beginning-of-sequence token, if defined.
-    var bosTokenId: Int? { get }
 
     /// The end-of-sequence token string, if defined.
     var eosToken: String? { get }
 
-    /// The numeric ID of the end-of-sequence token, if defined.
-    var eosTokenId: Int? { get }
-
     /// The unknown token string used for out-of-vocabulary words.
     var unknownToken: String? { get }
-
-    /// The numeric ID of the unknown token.
-    var unknownTokenId: Int? { get }
 
     /// Whether this tokenizer has a chat template configured.
     var hasChatTemplate: Bool { get }
@@ -460,6 +399,14 @@ extension Tokenizer {
 }
 
 public extension Tokenizer {
+    /// Encodes text into token IDs with special tokens included.
+    ///
+    /// - Parameter text: The input text to encode
+    /// - Returns: An array of token IDs
+    func encode(text: String) -> [Int] {
+        encode(text: text, addSpecialTokens: true)
+    }
+
     func callAsFunction(_ text: String, addSpecialTokens: Bool = true) -> [Int] {
         encode(text: text, addSpecialTokens: addSpecialTokens)
     }
@@ -475,6 +422,15 @@ public extension Tokenizer {
     func convertIdsToTokens(_ ids: [Int]) -> [String?] {
         ids.map { convertIdToToken($0) }
     }
+
+    /// The numeric ID of the beginning-of-sequence token, derived from the token string.
+    var bosTokenId: Int? { bosToken.flatMap { convertTokenToId($0) } }
+
+    /// The numeric ID of the end-of-sequence token, derived from the token string.
+    var eosTokenId: Int? { eosToken.flatMap { convertTokenToId($0) } }
+
+    /// The numeric ID of the unknown token, derived from the token string.
+    var unknownTokenId: Int? { unknownToken.flatMap { convertTokenToId($0) } }
 }
 
 /// A comprehensive tokenizer implementation supporting pre-trained models from Hugging Face.
@@ -491,11 +447,8 @@ public class PreTrainedTokenizer: @unchecked Sendable, Tokenizer {
     let model: TokenizingModel
 
     public var bosToken: String? { model.bosToken }
-    public var bosTokenId: Int? { model.bosTokenId }
     public var eosToken: String? { model.eosToken }
-    public var eosTokenId: Int? { model.eosTokenId }
     public var unknownToken: String? { model.unknownToken }
-    public var unknownTokenId: Int? { model.unknownTokenId }
     public var fuseUnknownTokens: Bool { model.fuseUnknownTokens }
 
     let addedTokens: Set<String>
@@ -696,16 +649,8 @@ public class PreTrainedTokenizer: @unchecked Sendable, Tokenizer {
     ///   - text: The input text to encode
     ///   - addSpecialTokens: Whether to add special tokens during post-processing
     /// - Returns: An array of token IDs
-    public func encode(text: String, addSpecialTokens: Bool = true) -> [Int] {
+    public func encode(text: String, addSpecialTokens: Bool) -> [Int] {
         postProcess(tokenize(text: text), addSpecialTokens: addSpecialTokens).map { model.convertTokenToId($0)! }
-    }
-
-    /// Encodes input text into token IDs with special tokens included by default.
-    ///
-    /// - Parameter text: The input text to encode
-    /// - Returns: An array of token IDs
-    public func encode(text: String) -> [Int] {
-        encode(text: text, addSpecialTokens: true)
     }
 
     /// Decodes token IDs back into human-readable text.
@@ -714,7 +659,7 @@ public class PreTrainedTokenizer: @unchecked Sendable, Tokenizer {
     ///   - tokens: The token IDs to decode
     ///   - skipSpecialTokens: Whether to exclude special tokens from the output text
     /// - Returns: The decoded text string
-    public func decode(tokens: [Int], skipSpecialTokens: Bool = false) -> String {
+    public func decode(tokens: [Int], skipSpecialTokens: Bool) -> String {
         // IDs to tokens
         let tokenStrings: [String]
         if skipSpecialTokens {
@@ -754,17 +699,12 @@ public class PreTrainedTokenizer: @unchecked Sendable, Tokenizer {
 
     public func applyChatTemplate(
         messages: [Message],
-        chatTemplate: ChatTemplateArgument? = nil,
-        addGenerationPrompt: Bool = true,
-        truncation: Bool = false,
-        maxLength: Int? = nil,
-        // A list of tools (callable functions) that will be accessible to the model. If the template does not
-        // support function calling, this argument will have no effect. Each tool should be passed as a JSON Schema,
-        // giving the name, description and argument types for the tool. See the
-        // [chat templating guide](https://huggingface.co/docs/transformers/main/en/chat_templating#automated-function-conversion-for-tool-use)
-        // for more information.
-        tools: [ToolSpec]? = nil,
-        additionalContext: [String: any Sendable]? = nil
+        chatTemplate: ChatTemplateArgument?,
+        addGenerationPrompt: Bool,
+        truncation: Bool,
+        maxLength: Int?,
+        tools: [ToolSpec]?,
+        additionalContext: [String: any Sendable]?
     ) throws -> [Int] {
         var selectedChatTemplate: String?
         if let chatTemplate, case let .literal(template) = chatTemplate {

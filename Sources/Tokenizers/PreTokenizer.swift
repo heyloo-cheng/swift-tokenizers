@@ -28,30 +28,6 @@ public protocol PreTokenizer {
     /// - Returns: An array of pre-tokenized text chunks
     func preTokenize(text: String, options: PreTokenizerOptions) -> [String]
 
-    /// Pre-tokenizes multiple text strings.
-    ///
-    /// - Parameters:
-    ///   - texts: The input texts to pre-tokenize
-    ///   - options: Options controlling the pre-tokenization behavior
-    /// - Returns: An array of pre-tokenized text chunks from all inputs
-    func preTokenize(texts: [String], options: PreTokenizerOptions) -> [String]
-
-    /// Function call syntax for pre-tokenizing multiple texts.
-    ///
-    /// - Parameters:
-    ///   - texts: The input texts to pre-tokenize
-    ///   - options: Options controlling the pre-tokenization behavior
-    /// - Returns: An array of pre-tokenized text chunks
-    func callAsFunction(texts: [String], options: PreTokenizerOptions) -> [String]
-
-    /// Function call syntax for pre-tokenizing a single text.
-    ///
-    /// - Parameters:
-    ///   - text: The input text to pre-tokenize
-    ///   - options: Options controlling the pre-tokenization behavior
-    /// - Returns: An array of pre-tokenized text chunks
-    func callAsFunction(text: String, options: PreTokenizerOptions) -> [String]
-
     /// Initializes the pre-tokenizer from configuration.
     ///
     /// - Parameter config: The configuration for this pre-tokenizer
@@ -60,6 +36,11 @@ public protocol PreTokenizer {
 }
 
 extension PreTokenizer {
+    /// Convenience with default parameter values for the protocol requirement.
+    func preTokenize(text: String, options: PreTokenizerOptions = [.firstSection]) -> [String] {
+        preTokenize(text: text, options: options)
+    }
+
     func preTokenize(texts: [String], options: PreTokenizerOptions = [.firstSection]) -> [String] {
         texts.flatMap { preTokenize(text: $0, options: options) }
     }
@@ -114,7 +95,7 @@ class BertPreTokenizer: PreTokenizer {
         re = "[^\\s\(punctuationRegex)]+|[\(punctuationRegex)]"
     }
 
-    func preTokenize(text: String, options: PreTokenizerOptions = [.firstSection]) -> [String] {
+    func preTokenize(text: String, options: PreTokenizerOptions) -> [String] {
         text.ranges(of: re).map { String(text[$0]) }
     }
 }
@@ -129,7 +110,7 @@ class PreTokenizerSequence: PreTokenizer {
         preTokenizers = try configs.compactMap { try PreTokenizerFactory.fromConfig(config: $0) }
     }
 
-    func preTokenize(text: String, options: PreTokenizerOptions = [.firstSection]) -> [String] {
+    func preTokenize(text: String, options: PreTokenizerOptions) -> [String] {
         preTokenizers.reduce([text]) { current, preTokenizer in
             preTokenizer(texts: current, options: options)
         }
@@ -143,7 +124,7 @@ class WhitespacePreTokenizer: PreTokenizer {
         re = #"\S+"#
     }
 
-    func preTokenize(text: String, options: PreTokenizerOptions = [.firstSection]) -> [String] {
+    func preTokenize(text: String, options: PreTokenizerOptions) -> [String] {
         text.ranges(of: re).map { String(text[$0]) }
     }
 }
@@ -183,7 +164,7 @@ class MetaspacePreTokenizer: PreTokenizer {
 
     /// https://github.com/huggingface/tokenizers/blob/accd0650b802f2180df40ef1def3bce32156688e/tokenizers/src/pre_tokenizers/metaspace.rs#L114
     /// https://github.com/xenova/transformers.js/blob/b07336d8f7ff57453cc164cc68aead2a79cbd57e/src/tokenizers.js#L2153
-    func preTokenize(text: String, options: PreTokenizerOptions = [.firstSection]) -> [String] {
+    func preTokenize(text: String, options: PreTokenizerOptions) -> [String] {
         let normalized = text.replacingOccurrences(of: " ", with: stringReplacement)
 
         // We add a prefix space if:
@@ -222,7 +203,7 @@ class ByteLevelPreTokenizer: PreTokenizer {
         useRegex = config.useRegex.boolean(or: true)
     }
 
-    func preTokenize(text: String, options: PreTokenizerOptions = [.firstSection]) -> [String] {
+    func preTokenize(text: String, options: PreTokenizerOptions) -> [String] {
         // Split on whitespace and punctuation
         let tokens = useRegex ? text.ranges(of: RE).map { String(text[$0]) } : [text]
         return tokens.map { token in
@@ -243,7 +224,7 @@ class PunctuationPreTokenizer: PreTokenizer {
         re = "[^\(punctuationRegex)]+|[\(punctuationRegex)]+"
     }
 
-    func preTokenize(text: String, options: PreTokenizerOptions = [.firstSection]) -> [String] {
+    func preTokenize(text: String, options: PreTokenizerOptions) -> [String] {
         // Ref: https://github.com/xenova/transformers.js/blob/27920d84831e323275b38f0b5186644b7936e1a2/src/tokenizers.js#L1138
         text.ranges(of: re).map { String(text[$0]) }
     }
@@ -257,7 +238,7 @@ class DigitsPreTokenizer: PreTokenizer {
         re = "[^\\d]+|\\d\(individualDigits ? "" : "+")"
     }
 
-    func preTokenize(text: String, options: PreTokenizerOptions = [.firstSection]) -> [String] {
+    func preTokenize(text: String, options: PreTokenizerOptions) -> [String] {
         text.ranges(of: re).map { String(text[$0]) }
     }
 }
@@ -271,7 +252,7 @@ class SplitPreTokenizer: PreTokenizer {
         invert = config.invert.boolean(or: false)
     }
 
-    func preTokenize(text: String, options: PreTokenizerOptions = [.firstSection]) -> [String] {
+    func preTokenize(text: String, options: PreTokenizerOptions) -> [String] {
         guard let pattern else { return [text] }
         return pattern.split(text, invert: invert)
     }
