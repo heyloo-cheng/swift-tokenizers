@@ -234,7 +234,8 @@ struct TokenizerTests {
     /// https://github.com/huggingface/swift-transformers/issues/318
     @Test
     func kredorPunctuateAllTokenizer() async throws {
-        let tokenizerOpt = try await AutoTokenizer.from(pretrained: "kredor/punctuate-all") as? PreTrainedTokenizer
+        let modelDirectory = try await downloadModel("kredor/punctuate-all")
+        let tokenizerOpt = try await AutoTokenizer.from(directory: modelDirectory) as? PreTrainedTokenizer
         #expect(tokenizerOpt != nil)
         let tokenizer = tokenizerOpt!
 
@@ -245,7 +246,8 @@ struct TokenizerTests {
 
     @Test
     func robertaXLMCanonicalTokenizer() async throws {
-        let tokenizerOpt = try await AutoTokenizer.from(pretrained: "FacebookAI/xlm-roberta-base") as? PreTrainedTokenizer
+        let modelDirectory = try await downloadModel("FacebookAI/xlm-roberta-base")
+        let tokenizerOpt = try await AutoTokenizer.from(directory: modelDirectory) as? PreTrainedTokenizer
         #expect(tokenizerOpt != nil)
         let tokenizer = tokenizerOpt!
 
