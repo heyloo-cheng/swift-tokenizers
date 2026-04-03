@@ -9,7 +9,7 @@ Tokenizer loading performance is [significantly faster](https://github.com/DePas
 Load a tokenizer from a local directory containing `tokenizer.json` and `tokenizer_config.json`:
 
 ```swift
-import Tokenizers
+import MLXSwiftTokenizers
 
 let tokenizer = try await AutoTokenizer.from(directory: localDirectory)
 ```
@@ -59,7 +59,7 @@ This library focuses solely on tokenization. For downloading models from the Hug
 
 ### Package dependency
 
-Replace `swift-transformers` with `swift-tokenizers` in your `Package.swift`. The `Transformers` product no longer exists – use the `Tokenizers` product directly:
+Replace `swift-transformers` with `swift-tokenizers` in your `Package.swift`. The `Transformers` product no longer exists – use the `MLXSwiftTokenizers` product directly:
 
 ```swift
 // Before
@@ -68,9 +68,9 @@ Replace `swift-transformers` with `swift-tokenizers` in your `Package.swift`. Th
 .product(name: "Transformers", package: "swift-transformers"),
 
 // After
-.package(url: "https://github.com/DePasqualeOrg/swift-tokenizers.git", from: "..."),
+.package(url: "https://github.com/heyloo-cheng/swift-tokenizers.git", from: "..."),
 // ...
-.product(name: "Tokenizers", package: "swift-tokenizers"),
+.product(name: "MLXSwiftTokenizers", package: "swift-tokenizers"),
 ```
 
 ### Loading tokenizers

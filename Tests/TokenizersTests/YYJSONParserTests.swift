@@ -4,7 +4,7 @@
 import Foundation
 import Testing
 
-@testable import Tokenizers
+@testable import MLXSwiftTokenizers
 
 @Suite
 struct YYJSONParserTests {

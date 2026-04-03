@@ -6,7 +6,7 @@ let package = Package(
     name: "swift-tokenizers",
     platforms: [.iOS(.v16), .macOS(.v13)],
     products: [
-        .library(name: "Tokenizers", targets: ["Tokenizers"])
+        .library(name: "MLXSwiftTokenizers", targets: ["MLXSwiftTokenizers"])
     ],
     dependencies: [
         .package(url: "https://github.com/huggingface/swift-jinja.git", from: "2.0.0"),
@@ -15,7 +15,7 @@ let package = Package(
     ],
     targets: [
         .target(
-            name: "Tokenizers",
+            name: "MLXSwiftTokenizers",
             dependencies: [
                 .product(name: "Jinja", package: "swift-jinja"),
                 .product(name: "yyjson", package: "yyjson"),
@@ -24,7 +24,7 @@ let package = Package(
         .testTarget(
             name: "Benchmarks",
             dependencies: [
-                "Tokenizers",
+                "MLXSwiftTokenizers",
                 .product(name: "HuggingFace", package: "swift-huggingface"),
                 .product(name: "yyjson", package: "yyjson"),
             ]
@@ -32,7 +32,7 @@ let package = Package(
         .testTarget(
             name: "TokenizersTests",
             dependencies: [
-                "Tokenizers",
+                "MLXSwiftTokenizers",
                 .product(name: "HuggingFace", package: "swift-huggingface"),
             ],
             resources: [.process("Resources")]

@@ -3,7 +3,7 @@
 import Foundation
 import Testing
 
-@testable import Tokenizers
+@testable import MLXSwiftTokenizers
 
 /// Stanford Question Answering Dataset (SQuAD)
 private enum Squad {

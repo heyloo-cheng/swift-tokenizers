@@ -3,7 +3,7 @@
 import Foundation
 import Testing
 
-@testable import Tokenizers
+@testable import MLXSwiftTokenizers
 
 @Suite("Pre-Tokenizer Tests")
 struct PreTokenizerTests {

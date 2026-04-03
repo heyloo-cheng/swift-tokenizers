@@ -6,7 +6,7 @@ import Foundation
 import HuggingFace
 import Testing
 
-@testable import Tokenizers
+@testable import MLXSwiftTokenizers
 
 private let downloadDestination: URL = {
     let base = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask).first!

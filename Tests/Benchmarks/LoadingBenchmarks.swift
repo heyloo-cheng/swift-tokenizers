@@ -8,7 +8,7 @@ import Foundation
 import HuggingFace
 import Testing
 
-@testable import Tokenizers
+@testable import MLXSwiftTokenizers
 
 @Suite(
     "Tokenizer Loading Benchmarks",
